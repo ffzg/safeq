@@ -2,6 +2,8 @@
 use warnings;
 use strict;
 
+use Data::Dump qw(dump);
+
 use IO::Socket::INET;
 
 $| = 1;
@@ -32,7 +34,8 @@ while(1) {
 
 	while ($client_socket->connected) {
 		my $line = <$client_socket>;
-		chomp $line;
+		$line =~ s/[\r\n]+$//;
+
 		warn "<< $line\n";
 
 		if ( $line =~ m/^\.SQ ([\d\.]+) (\S+)/ ) {
@@ -42,16 +45,16 @@ while(1) {
 		} elsif ( $line =~ m/\.SERVER LIST/ ) {
 			client_send  ".ERROR NO-ENTERPRISE";
 		} elsif ( $line =~ m/\.CARD (\S+)/ ) {
-			client_send  ".CARD OK pero peric (pero\@example.com)";
+			client_send  ".CARD OK Ime Prezime (nobody\@example.com)";
 		} elsif ( $line =~ m/\.ACTION$/ ) {
-			client_send  ".ACTION CMENUS2";
+			client_send  ".ACTION CMENUS0"; # FIXME can be CMENUS2
 		} elsif ( $line =~ m/\.ACTION COPY/ ) {
 			client_send  ".ACTION COPY";
 			client_send  ".COPY Mozete kopirati (pero)";
 		} elsif ( $line =~ m/(\.NOP)/ ) {
 			client_send  "$1";
 		} else {
-			die "unknown: $line";
+			die "UNKNOWN: ",dump($line);
 		}
 	}
 }
