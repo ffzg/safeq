@@ -36,8 +36,10 @@ while(1) {
 
 	sub client_line {
 		my $line = <$client_socket>;
-		$line =~ s/[\r\n]+$//;
-		warn "<< $line\n";
+		if ( defined $line ) {
+			$line =~ s/[\r\n]+$//;
+			warn "<< $line\n";
+		}
 		return $line;
 	}
 
@@ -51,7 +53,8 @@ while(1) {
 	my $total_charged = 0.00;
 	my $total_pages   = 0;
 	sub credit {
-		my $v = shift || $credit;
+		my $v = $credit;
+		$v = $_[0] if defined $_[0];
 		return sprintf "%1.2f kn", $v;
 	}
 
@@ -70,8 +73,12 @@ while(1) {
 		} elsif ( $line =~ m/\.CARD (\S+)/ ) {
 			my ($rfid_sid) = $1;
 			client_send  ".CARD OK Ime Prezime (nobody\@example.com)";
+		} elsif ( $line =~ m/\.PIN (\S+)/ ) {
+			my ($pin) = $1;
+			client_send  ".PIN OK Ime Pinzime (nobody\@example.com)";
 		} elsif ( $line =~ m/\.ACTION$/ ) {
-			client_send  ".ACTION CMENUS0"; # FIXME can be CMENUS2
+			# CMENUS0 - no printer
+			client_send  ".ACTION CMENUS68"; # FIXME can be CMENUS2
 
 		} elsif ( $line =~ m/\.ACTION COPY/ ) {
 			client_send  ".ACTION COPY";	# safeq sends this twice
@@ -99,13 +106,16 @@ while(1) {
 		} elsif ( $line =~ m/\.ACTION PRINT ALL/ ) {
 			# FIXME
 
-		} elsif ( $line =~ m/(\.NOP)/ ) {
+		} elsif ( $line =~ m/^\.NOP/ ) {
+			# XXX it's important to sleep, before sending response or
+			# interface on terminal device will be unresponsive
+			sleep 1;
 			client_send  "$1";
 		} elsif ( $line =~ m/^\.END/ ) {
 			client_send  ".DONE BLK WAIT";
 			client_send  ".NOP";
 			my $nop = client_line;
-			client_send "DONE $total_pages ".credit($total_charged);
+			client_send ".DONE $total_pages ".credit($total_charged);
 			warn "expected NOP got: $nop" unless $nop =~ m/NOP/;
 			my $null = client_line;
 			$client_socket->close;
