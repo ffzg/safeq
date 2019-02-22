@@ -110,7 +110,7 @@ while(1) {
 			# XXX it's important to sleep, before sending response or
 			# interface on terminal device will be unresponsive
 			sleep 1;
-			client_send  "$1";
+			client_send  ".NOP";
 		} elsif ( $line =~ m/^\.END/ ) {
 			client_send  ".DONE BLK WAIT";
 			client_send  ".NOP";
