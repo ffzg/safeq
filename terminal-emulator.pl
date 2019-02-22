@@ -34,22 +34,21 @@ my @send_receive = grep { /^.+$/ } split(/\n/, q{
 .ACTION CMENUS0
 
 .NOP
-.NOP 
-
-
 .NOP
-.NOP 
-
-.NOP
-.NOP 
-
-.NOP
-.NOP 
 
 .NOP
 .NOP
 
-.END 
+.NOP
+.NOP
+
+.NOP
+.NOP
+
+.NOP
+.NOP
+
+.END
 });
 
 #warn "# send_receive=",dump( \@send_receive );
@@ -61,9 +60,15 @@ while ( @send_receive ) {
 	print $socket "$send\r\n";
 	my $got = <$socket>;
 	$got =~ s/[\r\n]+$//;
-warn dump($send,$expect,$got);
+warn "# send/expect/got ",dump($send,$expect,$got);
 	warn "<< $got\n";
-	die "ERROR expected [$expect] got [$got]" if $expect ne $got;
+	if ( $expect ne $got ) {
+		warn "ERROR expected [$expect] got [$got]\n";
+		print "Response>";
+		my $r = <STDIN>; chomp $r;
+		print $socket "$r\r\n";
+	}
+
 }
 
 $socket->close();
