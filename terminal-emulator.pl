@@ -31,7 +31,7 @@ my @send_receive = grep { /^.+$/ } split(/\n/, q{
 .CARD OK Ime Prezime (nobody@example.com)
 
 .ACTION
-.ACTION CMENUS0
+.ACTION CMENUS
 
 .NOP
 .NOP
@@ -62,7 +62,7 @@ while ( @send_receive ) {
 	$got =~ s/[\r\n]+$//;
 warn "# send/expect/got ",dump($send,$expect,$got);
 	warn "<< $got\n";
-	if ( $expect ne $got ) {
+	if ( $expect ne substr($got,0,length($expect)) ) {
 		warn "ERROR expected [$expect] got [$got]\n";
 		print "Response>";
 		my $r = <STDIN>; chomp $r;
