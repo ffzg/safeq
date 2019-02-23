@@ -5,6 +5,7 @@ use strict;
 use Data::Dump qw(dump);
 
 use IO::Socket::INET;
+use Time::HiRes;
 
 $| = 1;
 
@@ -25,6 +26,9 @@ my $prices = {
 	DUPLEX => -0.05,
 };
 
+
+my $next_nop_t = time() + 5;
+
 while(1) {
 	our $client_socket = $socket->accept();
 
@@ -35,11 +39,30 @@ while(1) {
 	}
 
 	sub client_line {
-		my $line = <$client_socket>;
-		if ( defined $line ) {
-			$line =~ s/[\r\n]+$//;
-			warn "<< $line\n";
+		#my $line = <$client_socket>;
+
+		my $line;
+		my $timeout = $next_nop_t - time();
+		if ( $timeout > 0 ) {
+			eval {
+				local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+				alarm $timeout;
+				warn "# NOP alarm $timeout";
+				$line = <$client_socket>;
+				alarm 0;
+			};
+			if ($@) {
+				# timed out
+				client_send ".NOP";
+				$line = <$client_socket>;
+			}
+		} else {
+			$line = <$client_socket>;
 		}
+
+		$line =~ s/[\r\n]+$//;
+		warn "<< $line\n";
+
 		return $line;
 	}
 
@@ -109,8 +132,7 @@ while(1) {
 		} elsif ( $line =~ m/^\.NOP/ ) {
 			# XXX it's important to sleep, before sending response or
 			# interface on terminal device will be unresponsive
-			sleep 1;
-			client_send  ".NOP";
+			$next_nop_t = time() + 5; # NOP every 5s?
 		} elsif ( $line =~ m/^\.END/ ) {
 			client_send  ".DONE BLK WAIT";
 			client_send  ".NOP";
