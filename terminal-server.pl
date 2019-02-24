@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
+use autodie;
 
 use Data::Dump qw(dump);
 
@@ -60,8 +61,12 @@ while(1) {
 			$line = <$client_socket>;
 		}
 
-		$line =~ s/[\r\n]+$//;
-		warn "<< $line\n";
+		if ( defined $line ) {
+			$line =~ s/[\r\n]+$//;
+			warn "<< $line\n";
+		} else {
+			warn "<< [NULL] connected: ",dump($client_socket), $client_socket->connected;
+		}
 
 		return $line;
 	}
@@ -135,18 +140,15 @@ while(1) {
 			$next_nop_t = time() + 5; # NOP every 5s?
 		} elsif ( $line =~ m/^\.END/ ) {
 			client_send  ".DONE BLK WAIT";
-			client_send  ".NOP";
-			my $nop = client_line;
-			client_send ".DONE $total_pages ".credit($total_charged);
-			warn "expected NOP got: $nop" unless $nop =~ m/NOP/;
-			my $null = client_line;
 			$client_socket->close;
-		} else {
+		} elsif (defined $line) {
 			warn "UNKNOWN: ",dump($line);
 			print "Response>";
 			my $r = <STDIN>;
 			chomp $r;
 			client_send $r;
+		} else {
+			warn "NULL line, connected ", $client_socket->connected;
 		}
 	}
 	warn "# return to accept";

@@ -39,15 +39,6 @@ my @send_receive = grep { /^.+$/ } split(/\n/, q{
 .NOP
 .NOP
 
-.NOP
-.NOP
-
-.NOP
-.NOP
-
-.NOP
-.NOP
-
 .END
 });
 
@@ -62,7 +53,7 @@ while ( @send_receive ) {
 	$got =~ s/[\r\n]+$//;
 warn "# send/expect/got ",dump($send,$expect,$got);
 	warn "<< $got\n";
-	if ( $expect ne substr($got,0,length($expect)) ) {
+	if ( defined $got && defined $expect && $expect ne substr($got,0,length($expect)) ) {
 		warn "ERROR expected [$expect] got [$got]\n";
 		print "Response>";
 		my $r = <STDIN>; chomp $r;
