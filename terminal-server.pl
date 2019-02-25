@@ -65,7 +65,7 @@ while(1) {
 			$line =~ s/[\r\n]+$//;
 			warn "<< $line\n";
 		} else {
-			warn "<< [NULL] connected: ",dump($client_socket), $client_socket->connected;
+			warn "<< NULL ", $client_socket->connected ? '' : 'NOT ', "connected";
 		}
 
 		return $line;
@@ -89,6 +89,7 @@ while(1) {
 	while ($client_socket->connected) {
 
 		my $line = client_line;
+		last if ! defined $line;
 
 		if ( $line =~ m/^\.SQ ([\d\.]+) (\S+)/ ) {
 			my ($version,$serial) = ($1,$2);
@@ -131,12 +132,12 @@ while(1) {
 		} elsif ( $line =~ m/\.ACTION LIST/ ) {
 
 			client_send "2"; # nr of items in list
-			#            status: 0/3
+			#            status: 0 - pendng/3 - printed
 			#            | pages
 			#            | | title
 			#            | | |                   queue
 			client_send "3|1|Koha online catalog|XWC7232";
-			client_send "3|1|Koha online catalog|XWC5225";
+			client_send "0|1|Koha online catalog|XWC5225";
 			# FIXME
 
 		} elsif ( $line =~ m/\.ACTION PRINT (ALL|\d+)/ ) {
@@ -192,8 +193,11 @@ while(1) {
 			# interface on terminal device will be unresponsive
 			$next_nop_t = time() + 5; # NOP every 5s?
 		} elsif ( $line =~ m/^\.END/ ) {
-			client_send  ".DONE BLK WAIT";
-			$client_socket->close;
+			client_send ".DONE BLK WAIT";
+			client_send ".NOP";
+			my $nr_jobs = 0; # FIXME
+			client_send ".DONE $nr_jobs $total_pages ".credit($total_charged);
+#			$client_socket->close;
 		} elsif (defined $line) {
 			warn "UNKNOWN: ",dump($line);
 			print "Response>";
@@ -201,7 +205,7 @@ while(1) {
 			chomp $r;
 			client_send $r;
 		} else {
-			warn "NULL line, connected ", $client_socket->connected;
+			warn "NULL line ", $client_socket->connected ? '' : 'NOT ', "connected";
 		}
 	}
 	warn "# return to accept";
