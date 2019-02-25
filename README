@@ -1,5 +1,7 @@
 Goal is to write replacement SafeQ using cups and samba
 
 For now, first goal is to support SafeQ terminal protocol so we can re-use devices not supported
-by vendor any more.
+by vendor any more. We are targeting only Xerox devices which we have.
+
+./debian-install.sh # will install required Debian packages
 
