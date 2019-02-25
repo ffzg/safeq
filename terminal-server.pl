@@ -129,10 +129,63 @@ while(1) {
 			client_send ".NOP";
 
 		} elsif ( $line =~ m/\.ACTION LIST/ ) {
+
+			client_send "2"; # nr of items in list
+			#            status: 0/3
+			#            | pages
+			#            | | title
+			#            | | |                   queue
+			client_send "3|1|Koha online catalog|XWC7232";
+			client_send "3|1|Koha online catalog|XWC5225";
 			# FIXME
 
-		} elsif ( $line =~ m/\.ACTION PRINT ALL/ ) {
+		} elsif ( $line =~ m/\.ACTION PRINT (ALL|\d+)/ ) {
+			my $what = $1;
+			my $job = $1 if $1 =~ m/^\d+$/; # 0 means print all?
+
+			my $charge = $prices->{'A4'} || die "no A4 price";
+
+			my $nr_jobs = 2;
+
+			if ( $nr_jobs == 0 ) {
+				client_send ".ACTION NOJOB Nema se šta tiskat";
+				next;
+			}
+
 			# FIXME
+			warn "FIXME $line\n";
+			client_send ".ACTION PRINT"; # device locked from terminal screen?
+
+			# check if printer ready
+			my $printer_ready = 0;
+			if ( ! $printer_ready ) {
+				client_send ".WARN 1/1|The printer is not ready|job has been suspended ... (1x)";
+				next;
+			}
+
+			my $send = 0; # 0 .. 100
+			my $printed = 0; # 0 .. nr pages
+
+			#                   total pages in batch
+			#                   | page/batch
+			#                   | |   title
+			#                   | |   |
+			client_send ".PRINT 1|1/1|Microsoft Word - molba_opca";
+			client_send ".NOP S $send C 0";
+
+			# open 10.60.3.25:9100
+			$send = 100;
+
+			client_send ".NOP S $send C 0";
+			client_send ".MSG Please check display of device" if $send == 100;
+
+			# check smtp counters to be sure page is printed
+
+			$credit        -= $charge;
+			$total_charged += $charge;
+			$total_pages++;
+
+			client_send ".DONE $nr_jobs $total_pages ".credit($total_charged);
 
 		} elsif ( $line =~ m/^\.NOP/ ) {
 			# XXX it's important to sleep, before sending response or
