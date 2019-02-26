@@ -26,3 +26,7 @@ IP          id        Job Name   Owner       Status         Type     Quantity
 10.60.3.35  00015c2f  Test Page  root        3:User Action  1:Print  0
 10.60.3.35  00015c32  -          10.60.3.10  3:User Action  1:Print  0
 
+
+You can delete job using:
+
+dpavlin@t42:~/safeq$ curl -XPOST -d OPR=CANCEL -d JOBS=00015c32/ http://10.60.3.35/JOBCTRL.cmd
