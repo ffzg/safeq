@@ -35,23 +35,24 @@ warn "# info=",dump($info) if $debug;
 
 my @headers = @{ $info->{hdrs} };
 unshift @headers, 'id' if $op eq 'list';
+unshift @headers, 'IP';
 
 print join("\t", @headers),"\n";
 
 foreach my $l ( @{ $info->{info} } ) {
 	warn "## l=",dump($l) if $debug > 1;
 	
-	$l->[3] = $info->{stats}->[ $l->[3] ];
-	$l->[4] = $info->{types}->[ $l->[4] ];
+	$l->[3] .= ':' . $info->{stats}->[ $l->[3] ];
+	$l->[4] .= ':' . $info->{types}->[ $l->[4] ];
 
-	print join("\t", @$l), "\n";
+	print join("\t", $ip, @$l), "\n";
 }
 
 foreach my $l ( @{ $info->{jHst} } ) {
 	warn "## l=",dump($l) if $debug > 1;
 	
-	$l->[2] = $info->{stsAry}->[ $l->[2] ];
-	$l->[3] = $info->{types}->[ $l->[3] ];
+	$l->[2] .= ':' . $info->{stsAry}->[ $l->[2] ];
+	$l->[3] .= ':' . $info->{types}->[ $l->[3] ];
 
-	print join("\t", @$l),"\n";
+	print join("\t", $ip, @$l),"\n";
 }
