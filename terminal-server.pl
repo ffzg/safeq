@@ -126,7 +126,7 @@ while(1) {
 			$total_charged += $charge;
 			$total_pages++;
 			client_send ".CREDIT ".credit;
-			client_send ".COPY 1"; # I verified that you are allowed to copy 1 page?
+			client_send ".COPY $total_pages"; # page copied
 			client_send ".NOP";
 
 		} elsif ( $line =~ m/\.ACTION LIST/ ) {
@@ -196,7 +196,7 @@ while(1) {
 			client_send ".DONE BLK WAIT";
 			client_send ".NOP";
 			my $nr_jobs = 0; # FIXME
-			client_send ".DONE $nr_jobs $total_pages ".credit($total_charged);
+			client_send ".DONE $total_pages ".credit($total_charged);
 #			$client_socket->close;
 		} elsif (defined $line) {
 			warn "UNKNOWN: ",dump($line);
