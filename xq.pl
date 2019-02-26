@@ -7,10 +7,23 @@ use Data::Dump qw(dump);
 my $ip = shift @ARGV || '10.60.3.35';
 my $debug = $ENV{DEBUG} || 0;
 
-open(my $curl, '-|', "curl --silent http://$ip/jblist.htm");
+
+my $op = shift @ARGV || 'list';
+
+my $url = 'jblist.htm';
+if ( $op eq 'list' ) {
+	$url = 'jblist.htm';
+} elsif ( $op eq 'hist' ) {
+	$url = 'jbhist.htm';
+} else {
+	die "UNKNOWN op [$op]\n";
+}
+
+warn "# $ip/$url" if $debug;
+open(my $curl, '-|', "curl --silent http://$ip/$url");
 my $info;
 while(<$curl>) {
-	if ( m/var (stats|types|info|hdrs)=(.*);/ ) {
+	if ( m/var (stats|types|info|hdrs|stsAry|jHst)=(.*);/ ) {
 		my $json = $2;
 		my $v = eval $json; # this is not valid JSON, but perl's eval doesn't mind
 		#warn "# JSON $json -> ",dump($v);
@@ -20,12 +33,25 @@ while(<$curl>) {
 
 warn "# info=",dump($info) if $debug;
 
-my $fmt = "%-8s|%-16s|%-16s|%-16s|%-16s|%s\n"; # last should be %d, but this doesn't work for header
-printf $fmt, 'id', @{ $info->{hdrs} };
+my @headers = @{ $info->{hdrs} };
+unshift @headers, 'id' if $op eq 'list';
+
+print join("\t", @headers),"\n";
 
 foreach my $l ( @{ $info->{info} } ) {
 	warn "## l=",dump($l) if $debug > 1;
 	
-	printf $fmt,
-		$l->[0], $l->[1], $l->[2], $info->{stats}->[ $l->[3] ], $info->{types}->[ $l->[4] ], $l->[5];
+	$l->[3] = $info->{stats}->[ $l->[3] ];
+	$l->[4] = $info->{types}->[ $l->[4] ];
+
+	print join("\t", @$l), "\n";
+}
+
+foreach my $l ( @{ $info->{jHst} } ) {
+	warn "## l=",dump($l) if $debug > 1;
+	
+	$l->[2] = $info->{stsAry}->[ $l->[2] ];
+	$l->[3] = $info->{types}->[ $l->[3] ];
+
+	print join("\t", @$l),"\n";
 }
