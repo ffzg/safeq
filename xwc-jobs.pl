@@ -22,6 +22,9 @@ if ( $op =~ m/^l/i ) { # list
 } elsif ( $op =~ m/^s/i ) { # status
 	$url = 'stgen.htm';
 	$var_re = '(lbls|spcs|adrslbl)';
+} elsif ( $op =~ m/^e/i ) { # error
+	$url = 'sperr.htm';
+	$var_re = '(lHdr|errLog)';
 } elsif ( $op =~ m/^(d|c)/i ) { # delete/cancel
 	my $job_id = join('/', @ARGV) || die "expected job_id(s) missing";
 	open(my $curl, '-|', "curl --silent -XPOST -d OPR=CANCEL -d JOBS=$job_id/ http://$ip/JOBCTRL.cmd");
@@ -64,6 +67,14 @@ if ( exists $info->{spcs} ) {
 	print join($sep, @s),"\n";
 
 	exit 0;
+
+} elsif ( exists $info->{errLog} ) {
+	print join($sep, @{ $info->{lHdr} }),"\n";
+	foreach my $error ( @{ $info->{errLog} } ) {
+		print join($sep, @{ $error }),"\n";
+	}
+	exit 0;
+
 }
 
 my @headers = @{ $info->{hdrs} };
