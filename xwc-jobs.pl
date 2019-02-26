@@ -16,7 +16,7 @@ if ( $op =~ m/^l/i ) { # list
 } elsif ( $op =~ m/^h/i ) { # history
 	$url = 'jbhist.htm';
 } elsif ( $op =~ m/^(d|c)/i ) { # delete/cancel
-	my $job_id = shift @ARGV || die "expected job_id missing";
+	my $job_id = join('/', @ARGV) || die "expected job_id(s) missing";
 	open(my $curl, '-|', "curl --silent -XPOST -d OPR=CANCEL -d JOBS=$job_id/ http://$ip/JOBCTRL.cmd");
 	while (<$curl>) {
 		if ( m/<title>/i ) {
