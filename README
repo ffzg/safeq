@@ -38,16 +38,26 @@ dpavlin@t42:~/safeq$ ./xwc-jobs 10.60.3.35 d 00015c41
 10.60.3.35  00015c41  CANCEL  REQUEST: ACCEPTED
 
 
-When sending jobs via lpr to Xerox using ipp configured in cups we see -T as job name and -U as owner:
+We would like to have nice job name and user info on Xerox, so I tested how to send data
+using various protocols:
+
+dpavlin@t42:~/safeq$ lpstat -v
+device for ipp: ipp://10.60.3.35/ipp
+device for XWC5225-5KatL: socket://10.60.3.35
+
+dpavlin@t42:~/safeq$ lpr -Pipp -U lpr-U1 -C lpr-C1 -J lpr-J1 -T lpr-T1 /usr/share/doc/printer-driver-foo2zjs/manual.pdf
+
+dpavlin@t42:~/safeq$ lpr -PXWC5225-5KatL -U lpr-U2 -C lpr-C2 -J lpr-J2 -T lpr-T2 /usr/share/doc/printer-driver-foo2zjs/manual.pdf
+
+dpavlin@t42:~/safeq$ rlpr -H 10.60.3.35 -U rlpr-U -C rlpr-C -J rlpr-J -T rlpr-T /usr/share/doc/printer-driver-foo2zjs/manual.pdf
+
+And results are *VERY* different:
 
 dpavlin@t42:~/safeq$ ./xwc-jobs
-IP          id        Job Name  Owner  Status         Type     Quantity
-10.60.3.35  00015c47  lpr-T     lpr-U  3:User Action  1:Print  0
+IP          id        Job Name  Owner       Status             Type     Quantity
+10.60.3.35  00015c65  lpr-T1    lpr-U1      1:Printing...      1:Print  0
+10.60.3.35  00015c68  -         10.60.3.10  0:Printing - wait  1:Print  0
+10.60.3.35  00015c6b  rlpr-J    rlpr-U      0:Printing - wait  1:Print  0
 
-When sending jobs directly to printer using rlpr we see different flags:
-
-dpavlin@t42:~/safeq$ rlpr -H 10.60.3.35 -U lpr-U -P XWC5225-5KatL -C lpr-C -J lpr-J -T lpr-T /usr/share/doc/printer-driver-foo2zjs/manual.pdf
-
-dpavlin@t42:~/safeq$ ./xwc-jobs                                                                                        IP          id        Job Name  Owner       Status         Type     Quantity
-10.60.3.35  00015c50  lpr-J     lpr-U       3:User Action  1:Print  0
+So, it seems that we can't tranfer job name or owner through caps and socket connection.
 
