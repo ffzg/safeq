@@ -18,9 +18,10 @@ used to display info.
 ./xwc-jobs.pl 10.60.3.35 hist	# list completed jobs
 
 Script produces tab delimited output, but if you want to format it nicely you can always use
-SEP enviroment variable to specify sparator and column to format it:
+SEP enviroment variable to specify sparator and column to format it. This is included in
+xwc-jobs helper shell script which is useful for interactive use:
 
-dpavlin@t42:~/safeq$ SEP=, ./xwc-jobs.pl 10.60.3.35 | column -s , -t
+dpavlin@t42:~/safeq$ ./xwc-jobs 10.60.3.35
 IP          id        Job Name   Owner       Status         Type     Quantity
 10.60.3.35  00015c2c  -          10.60.3.10  3:User Action  1:Print  0
 10.60.3.35  00015c2f  Test Page  root        3:User Action  1:Print  0

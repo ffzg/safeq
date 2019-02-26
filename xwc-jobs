@@ -1,0 +1,3 @@
+#!/bin/sh -e
+
+SEP=, ./xwc-jobs.pl $* | column -s , -t | less -S -F
