@@ -11,10 +11,21 @@ my $sep = $ENV{SEP} || "\t";
 my $op = shift @ARGV || 'list';
 
 my $url = 'jblist.htm';
-if ( $op eq 'list' ) {
+if ( $op =~ m/^l/i ) { # list
 	$url = 'jblist.htm';
-} elsif ( $op eq 'hist' ) {
+} elsif ( $op =~ m/^h/i ) { # history
 	$url = 'jbhist.htm';
+} elsif ( $op =~ m/^(d|c)/i ) { # delete/cancel
+	my $job_id = shift @ARGV || die "expected job_id missing";
+	open(my $curl, '-|', "curl --silent -XPOST -d OPR=CANCEL -d JOBS=$job_id/ http://$ip/JOBCTRL.cmd");
+	while (<$curl>) {
+		if ( m/<title>/i ) {
+			chomp;
+			s/<[^>]*>//g;
+			print join($sep, $ip, $job_id, 'CANCEL', $_),"\n";
+		}
+	}
+	exit 0;
 } else {
 	die "UNKNOWN op [$op]\n";
 }

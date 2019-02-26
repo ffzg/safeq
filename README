@@ -31,3 +31,9 @@ IP          id        Job Name   Owner       Status         Type     Quantity
 You can delete job using:
 
 dpavlin@t42:~/safeq$ curl -XPOST -d OPR=CANCEL -d JOBS=00015c32/ http://10.60.3.35/JOBCTRL.cmd
+
+or use d[elete] or c[ancel] aruguments and job id:
+
+dpavlin@t42:~/safeq$ ./xwc-jobs 10.60.3.35 d 00015c41
+10.60.3.35  00015c41  CANCEL  REQUEST: ACCEPTED
+
