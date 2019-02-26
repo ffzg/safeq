@@ -1,7 +1,28 @@
 Goal is to write replacement SafeQ using cups and samba
 
 For now, first goal is to support SafeQ terminal protocol so we can re-use devices not supported
-by vendor any more. We are targeting only Xerox devices which we have.
+by vendor any more. We are also annoyed by SafeQ "feature" which doesn't allow us to use scanning
+if Xerox runs out of toner. This is arbitrary limitation which cripples this setup for us.
 
-./debian-install.sh # will install required Debian packages
+
+./debian-install.sh		# will install required Debian packages
+
+
+We have old Xerox WorkCentre 5225 and 7232 machines (from 2008) and getting active jobs or
+history is supported by web interface which is scraped and javascript variables inside
+used to display info.
+
+./xwc-jobs.pl 10.60.3.35		# list active jobs on Xerox WorkCentre 5225 by scraping web
+./xwc-jobs.pl 10.60.3.35 list
+
+./xwc-jobs.pl 10.60.3.35 hist	# list completed jobs
+
+Script produces tab delimited output, but if you want to format it nicely you can always use
+SEP enviroment variable to specify sparator and column to format it:
+
+dpavlin@t42:~/safeq$ SEP=, ./xwc-jobs.pl 10.60.3.35 | column -s , -t
+IP          id        Job Name   Owner       Status         Type     Quantity
+10.60.3.35  00015c2c  -          10.60.3.10  3:User Action  1:Print  0
+10.60.3.35  00015c2f  Test Page  root        3:User Action  1:Print  0
+10.60.3.35  00015c32  -          10.60.3.10  3:User Action  1:Print  0
 

@@ -6,7 +6,7 @@ use Data::Dump qw(dump);
 
 my $ip = shift @ARGV || '10.60.3.35';
 my $debug = $ENV{DEBUG} || 0;
-
+my $sep = $ENV{SEP} || "\t";
 
 my $op = shift @ARGV || 'list';
 
@@ -37,7 +37,7 @@ my @headers = @{ $info->{hdrs} };
 unshift @headers, 'id' if $op eq 'list';
 unshift @headers, 'IP';
 
-print join("\t", @headers),"\n";
+print join($sep, @headers),"\n";
 
 foreach my $l ( @{ $info->{info} } ) {
 	warn "## l=",dump($l) if $debug > 1;
@@ -45,7 +45,7 @@ foreach my $l ( @{ $info->{info} } ) {
 	$l->[3] .= ':' . $info->{stats}->[ $l->[3] ];
 	$l->[4] .= ':' . $info->{types}->[ $l->[4] ];
 
-	print join("\t", $ip, @$l), "\n";
+	print join($sep, $ip, @$l), "\n";
 }
 
 foreach my $l ( @{ $info->{jHst} } ) {
@@ -54,5 +54,5 @@ foreach my $l ( @{ $info->{jHst} } ) {
 	$l->[2] .= ':' . $info->{stsAry}->[ $l->[2] ];
 	$l->[3] .= ':' . $info->{types}->[ $l->[3] ];
 
-	print join("\t", $ip, @$l),"\n";
+	print join($sep, $ip, @$l),"\n";
 }
