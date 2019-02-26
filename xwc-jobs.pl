@@ -10,11 +10,18 @@ my $sep = $ENV{SEP} || "\t";
 
 my $op = shift @ARGV || 'list';
 
-my $url = 'jblist.htm';
+my $url;
+my $var_re;
+
 if ( $op =~ m/^l/i ) { # list
 	$url = 'jblist.htm';
+	$var_re = '(stats|types|info|hdrs)';
 } elsif ( $op =~ m/^h/i ) { # history
 	$url = 'jbhist.htm';
+	$var_re = '(hdrs|stsAry|types|jHst)';
+} elsif ( $op =~ m/^s/i ) { # status
+	$url = 'stgen.htm';
+	$var_re = '(lbls|spcs|adrslbl)';
 } elsif ( $op =~ m/^(d|c)/i ) { # delete/cancel
 	my $job_id = join('/', @ARGV) || die "expected job_id(s) missing";
 	open(my $curl, '-|', "curl --silent -XPOST -d OPR=CANCEL -d JOBS=$job_id/ http://$ip/JOBCTRL.cmd");
@@ -34,15 +41,30 @@ warn "# $ip/$url" if $debug;
 open(my $curl, '-|', "curl --silent http://$ip/$url");
 my $info;
 while(<$curl>) {
-	if ( m/var (stats|types|info|hdrs|stsAry|jHst)=(.*);/ ) {
+	if ( m/var ${var_re}=(.*);/ ) {
+		my $name = $1;
 		my $json = $2;
 		my $v = eval $json; # this is not valid JSON, but perl's eval doesn't mind
-		#warn "# JSON $json -> ",dump($v);
+		warn "## JSON $name $json -> ",dump($v) if $debug > 1;
 		$info->{$1} = $v;
 	}
 }
 
 warn "# info=",dump($info) if $debug;
+
+if ( exists $info->{spcs} ) {
+	print join($sep, @{ $info->{lbls} }),"\n";
+
+	my @s = @{ $info->{spcs} };
+	foreach my $i ( 0 .. $#{ $s[1] } ) {
+		$s[1]->[$i] .= ' ' . $info->{adrslbl}->[$i];
+	}
+	$s[1] = join(',', @{ $s[1] });
+	
+	print join($sep, @s),"\n";
+
+	exit 0;
+}
 
 my @headers = @{ $info->{hdrs} };
 unshift @headers, 'id' if $op eq 'list';
