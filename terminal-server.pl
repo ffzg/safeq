@@ -25,6 +25,7 @@ my $prices = {
 	BW => 0.0, # just paper cost
 	COLOR => 3.99, # FIXME
 	DUPLEX => -0.05,
+	COPY => 0, # no additional price other than paper
 };
 
 
