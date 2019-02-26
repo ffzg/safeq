@@ -1,3 +1,4 @@
 #!/bin/sh -e
 
-SEP=, ./xwc-jobs.pl $* | column -s , -t | less -S -F
+SEP=, ./xwc-jobs.pl $* | column -s , -t | less --no-init --quit-if-one-screen --chop-long-lines
+
