@@ -37,3 +37,17 @@ or use d[elete] or c[ancel] aruguments and job id:
 dpavlin@t42:~/safeq$ ./xwc-jobs 10.60.3.35 d 00015c41
 10.60.3.35  00015c41  CANCEL  REQUEST: ACCEPTED
 
+
+When sending jobs via lpr to Xerox using ipp configured in cups we see -T as job name and -U as owner:
+
+dpavlin@t42:~/safeq$ ./xwc-jobs
+IP          id        Job Name  Owner  Status         Type     Quantity
+10.60.3.35  00015c47  lpr-T     lpr-U  3:User Action  1:Print  0
+
+When sending jobs directly to printer using rlpr we see different flags:
+
+dpavlin@t42:~/safeq$ rlpr -H 10.60.3.35 -U lpr-U -P XWC5225-5KatL -C lpr-C -J lpr-J -T lpr-T /usr/share/doc/printer-driver-foo2zjs/manual.pdf
+
+dpavlin@t42:~/safeq$ ./xwc-jobs                                                                                        IP          id        Job Name  Owner       Status         Type     Quantity
+10.60.3.35  00015c50  lpr-J     lpr-U       3:User Action  1:Print  0
+
