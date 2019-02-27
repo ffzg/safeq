@@ -61,3 +61,21 @@ IP          id        Job Name  Owner       Status             Type     Quantity
 
 So, it seems that we can't tranfer job name or owner through caps and socket connection.
 
+
+Next problem is pesky banner pages which Xerox insists on printing using default cups
+drivers for it. Solution might be to use ppd files from Xerox, but they reference filter
+which doesn't exist and assume that postscript is supported on device which isn't the case
+for us. However, we can migrate option to disable banner to working ppd:
+
+
+*JCLOpenUI *JCLBanner/Banner Sheet: Boolean
+*OrderDependency: 10.0 JCLSetup *JCLBanner
+*DefaultJCLBanner: False
+*JCLBanner False/Disabled: "@PJL SET JOBATTR=<22>@BANR=OFF<22><0A>"
+*JCLBanner True/Enabled: "@PJL SET JOBATTR=<22>@BANR=START<22><0A>"
+*JCLCloseUI: *JCLBanner
+
+
+This will use more-or-less undocumented option @BANR to turn it off. Only reference to
+this option is in Xerox document "PDL Reference Guide for the Phaser 6510/WC 6515 Series"
+
