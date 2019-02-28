@@ -77,6 +77,8 @@ if ( exists $info->{spcs} ) {
 
 }
 
+exit 1 if ! defined $info->{hdrs}; # we didn't get expected output
+
 my @headers = @{ $info->{hdrs} };
 unshift @headers, 'id' if $op eq 'list';
 unshift @headers, 'IP';
