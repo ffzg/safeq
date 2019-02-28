@@ -22,6 +22,9 @@ if ( $op =~ m/^l/i ) { # list
 } elsif ( $op =~ m/^s/i ) { # status
 	$url = 'stgen.htm';
 	$var_re = '(lbls|spcs|adrslbl)';
+} elsif ( $op =~ m/^t/i ) { # tray
+	$url = 'sttray.htm';
+	$var_re = '(hdrIn|infoIn|hdrOut|infoOut|stsIn)';
 } elsif ( $op =~ m/^e/i ) { # error
 	$url = 'sperr.htm';
 	$var_re = '(lHdr|errLog)';
@@ -75,7 +78,20 @@ if ( exists $info->{spcs} ) {
 	}
 	exit 0;
 
-}
+} elsif ( exists $info->{infoIn} ) {
+	print join($sep, 'IP', @{ $info->{hdrIn} }),"\n";
+	foreach my $row ( @{ $info->{infoIn} } ) {
+		$row->[1] .= ':' . $info->{stsIn}->[$row->[1]];
+		print join($sep, $ip, @$row),"\n";
+	}
+
+	print join($sep, 'IP', @{ $info->{hdrOut} }),"\n";
+	foreach my $row ( @{ $info->{infoOut} } ) {
+		$row->[1] .= ':' . $info->{stsIn}->[$row->[1]];
+		print join($sep, $ip, @$row),"\n";
+	}
+	exit 0;
+} 
 
 my @headers = @{ $info->{hdrs} };
 unshift @headers, 'id' if $op eq 'list';
