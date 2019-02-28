@@ -72,9 +72,9 @@ if ( exists $info->{spcs} ) {
 	exit 0;
 
 } elsif ( exists $info->{errLog} ) {
-	print join($sep, @{ $info->{lHdr} }),"\n";
+	print join($sep, 'IP', @{ $info->{lHdr} }),"\n";
 	foreach my $error ( @{ $info->{errLog} } ) {
-		print join($sep, @{ $error }),"\n";
+		print join($sep, $ip, @{ $error }),"\n";
 	}
 	exit 0;
 
