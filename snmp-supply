@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+SEP=, ./snmp-supply.pl $* | column -s , -t | less --no-init --quit-if-one-screen --chop-long-lines
+
