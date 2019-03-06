@@ -1,0 +1,25 @@
+We are using cups-pdf to create printer which is shared on windows using ipp.
+
+Since we are not getting users from windows in our setup, we need cups-pdf
+PostProcessing hook to look find user from pGinaSessions.
+
+
+sudo vi /etc/cups/cups-pdf.conf
+
+PostProcessing /srv/safeq/cups-pdf-find-owner.pl
+
+
+To make this work, you also have to edit apparmor:
+
+sudo vi /etc/apparmor.d/usr.sbin.cupsd
+
+edit end of file, under /usr/lib/cups/backend/cups-pdf {
+add permission for script execution:
+...
+  /var/spool/cups/** r,
+  /var/spool/cups-pdf/** rw,
+
+  # safeq ffzg -- added to allow execution of PostProcessing
+  /srv/safeq/cups-pdf-find-owner.pl uxr,
+}
+
