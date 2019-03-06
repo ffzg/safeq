@@ -1,0 +1,23 @@
+We are using pGina to login into windows using LDAP server. However, since we are using single account on
+windows for all users (to decrease time needed for login since windows would create new account for 10
+minutes) we need to somehow know real user id so we are using pGina mysql logger plugin.
+
+sudo apt-get install mariadb-server
+
+sudo vi /etc/mysql/mariadb.conf.d/50-server.cnf	# modify bind-address if needed
+
+sudo systemctl restart mariadb
+
+sudo mysql
+
+MariaDB [(none)]> create user 'pGina'@'%' identified by 'secret' ;
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]> create database pGinaDB ;
+Query OK, 1 row affected (0.000 sec)
+
+MariaDB [(none)]> grant all on pGinaDB.* to pGina ;
+Query OK, 0 rows affected (0.001 sec)
+
+Now enable all required options in pgina and create tables.
+
