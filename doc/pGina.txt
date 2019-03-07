@@ -21,3 +21,7 @@ Query OK, 0 rows affected (0.001 sec)
 
 Now enable all required options in pgina and create tables.
 
+
+We are also modifing usernames by stripping @ffzg.hr at end of it. To make this work,
+this plugin must be before LDAP one or this won't work. pGina will report full usernames
+in logger plugin, so we strip same in find-user.
