@@ -7,6 +7,8 @@ use Data::Dump qw(dump);
 use File::Slurp;
 use DBI;
 
+open(STDERR, '>>', '/var/log/cups/find_owner_log');
+
 my ($file, $local_user, $remote_user) = @ARGV;
 
 my $job_id = $1 if ( $file =~ m/job_(\d+)/ );
@@ -45,12 +47,15 @@ warn "## row = ",dump($row);
 $sth->finish;
 
 my $username = $row->{username} || die "no username in row = ",dump($row);
+$username =~ s/\@ffzg.hr$//; # strip domain, same as pGina
 
 my $spool = '/var/spool/cups-pdf/';
 mkdir "$spool/$username" if ( ! -e "$spool/$username" );
 my $filename_only = $file;
 $filename_only =~ s/^.*\///; # basename
 
-rename $file, "$spool/$username/$filename_only";
+my $to = "$spool/$username/$filename_only";
+rename $file, $to;
+warn "# $to";
 
 exit 0;

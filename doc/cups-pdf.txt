@@ -23,3 +23,9 @@ add permission for script execution:
   /srv/safeq/cups-pdf-find-owner.pl uxr,
 }
 
+
+
+apparmor_parser -r /etc/apparmor.d/usr.sbin.cupsd
+
+/etc/init.d/apparmor restart
+
