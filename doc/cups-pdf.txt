@@ -6,7 +6,8 @@ PostProcessing hook to look find user from pGinaSessions.
 
 sudo vi /etc/cups/cups-pdf.conf
 
-PostProcessing /srv/safeq/cups-pdf-find-owner.pl
+PostProcessing /srv/safeq/cups-pdf-find-owner.sh
+
 
 
 To make this work, you also have to edit apparmor:
@@ -20,12 +21,29 @@ add permission for script execution:
   /var/spool/cups-pdf/** rw,
 
   # safeq ffzg -- added to allow execution of PostProcessing
-  /srv/safeq/cups-pdf-find-owner.pl uxr,
+  /srv/safeq/cups-pdf-find-owner.sh uxr,
 }
 
 
 
+Replace apparmor roule with updated:
+
 apparmor_parser -r /etc/apparmor.d/usr.sbin.cupsd
 
+Or reload all roules:
+
 /etc/init.d/apparmor restart
+
+
+
+This script will use bash to trigger socket connection with params to
+real implementation which has to wait for a while for cups control file
+to appear since we need it to extract IP address of client machine.
+Another problem is that PostProcessing directive is run as nobody
+and we need root permissions to read control files, so we need to run
+daemon part via sudo:
+
+sudo ./cups-pdf-find-owner.pl
+
+(since suidperl is no longer a thing)
 
