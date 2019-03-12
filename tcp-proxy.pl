@@ -11,15 +11,18 @@
 # proxy in one command," which can be read here:
 #
 # http://www.catonmat.net/blog/linux-socks5-proxy
-#
+# https://github.com/pkrumins/perl-tcp-proxy/raw/master/tcp-proxy.pl
 
 use warnings;
 use strict;
 
+my ($from,$to) = @ARGV;
+die "usage: $0 localhost:9335 10.60.3.35:9100\n" unless defined $from && defined $to && $from =~ m/:/ && $to =~ m/:/;
+
 use IO::Socket;
 use IO::Select;
 
-my @allowed_ips = ('1.2.3.4', '5.6.7.8', '127.0.0.1', '192.168.1.2');
+my @allowed_ips; # = ('127.0.0.1'); FIXME -- disabled IP check
 my $ioset = IO::Select->new;
 my %socket_map;
 
@@ -55,7 +58,7 @@ sub new_connection {
     }
     print "Connection from $client_ip accepted.\n" if $debug;
 
-    my $remote = new_conn('localhost', 55555);
+    my $remote = new_conn(split(/:/,$to));
     $ioset->add($client);
     $ioset->add($remote);
 
@@ -86,14 +89,17 @@ sub client_ip {
 }
 
 sub client_allowed {
+	return 1 unless @allowed_ips;
     my $client = shift;
     my $client_ip = client_ip($client);
     return grep { $_ eq $client_ip } @allowed_ips;
 }
 
-print "Starting a server on 0.0.0.0:1080\n";
-my $server = new_server('0.0.0.0', 1080);
+print "Starting a server on $from -> $to\n";
+my $server = new_server(split(/:/,$from));
 $ioset->add($server);
+
+use Data::Dump qw(dump);
 
 while (1) {
     for my $socket ($ioset->can_read) {
@@ -107,6 +113,7 @@ while (1) {
             my $read = $socket->sysread($buffer, 4096);
             if ($read) {
                 $remote->syswrite($buffer);
+				warn "# ", inet_ntoa($socket->sockaddr), " buffer=", dump($buffer);
             }
             else {
                 close_connection($socket);
