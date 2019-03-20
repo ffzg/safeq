@@ -26,15 +26,15 @@ my @allowed_ips; # = ('127.0.0.1'); FIXME -- disabled IP check
 my $ioset = IO::Select->new;
 my %socket_map;
 
-my $debug = 1;
+my $debug = $ENV{DEBUG} || 0;
 
 use DBI;
 
-my $database = 'pGinaDB';
-my $hostname = '10.60.4.9';
-my $port     = 3306;
-my $user     = 'pGina';
-my $password = 'secret';
+my $database = $ENV{PGINA_DB}   || 'pGinaDB';
+my $hostname = $ENV{PGINA_HOST} || '10.60.4.9';
+my $port     = $ENV{PGINA_PORT} || 3306;
+my $user     = $ENV{PGINA_USER} || 'pGina';
+my $password = $ENV{PGINA_PASS} || 'secret';
 
 my $dsn = "DBI:mysql:database=$database;host=$hostname;port=$port";
 my $dbh = DBI->connect($dsn, $user, $password);
@@ -124,31 +124,32 @@ while (1) {
             my $buffer;
             my $read = $socket->sysread($buffer, 4096);
             if ($read) {
-		warn "# ", inet_ntoa($socket->peeraddr), " buffer=", dump($buffer);
+		warn "# ", inet_ntoa($socket->peeraddr), " buffer=", dump($buffer) if $debug;
 		if ( $buffer =~ m/\n%%%SmartQ-For: (\w+)\n/s ) {
+			my $win_username = $1;
 			my $ip = inet_ntoa($socket->peeraddr);
-			warn "%%%SmartQ-For: $1 FROM $ip";
 
-my $sth = $dbh->prepare(qq{
-	select * from pGinaSession where ipaddress = ? and logoutstamp is null order by loginstamp desc
-}) or die "prepare statement failed: $dbh->errstr()";
-$sth->execute($ip) or die "execution failed: $dbh->errstr()";
-if ( $sth->rows < 1 ) {
-	die "can't find IP for job";
-} elsif ( $sth->rows > 1 ) {
-	warn "ERROR: found $sth->rows() rows usng first one\n";
-}
-my $row = $sth->fetchrow_hashref();
-warn "## row = ",dump($row);
+			my $sth = $dbh->prepare(qq{
+				select * from pGinaSession where ipaddress = ? and logoutstamp is null order by loginstamp desc
+			}) or die "prepare statement failed: $dbh->errstr()";
+			$sth->execute($ip) or die "execution failed: $dbh->errstr()";
+			if ( $sth->rows < 1 ) {
+				die "can't find IP for job";
+			} elsif ( $sth->rows > 1 ) {
+				warn "ERROR: found $sth->rows() rows usng first one\n";
+			}
+			my $row = $sth->fetchrow_hashref();
+			warn "## row = ",dump($row) if $debug;
 
-$sth->finish;
+			$sth->finish;
 
-my $username = $row->{username} || die "no username in row = ",dump($row);
-$username =~ s/\@ffzg.hr$//; # strip domain, same as pGina
-$username .= '@ffzg.hr';
+			my $username = $row->{username} || die "no username in row = ",dump($row);
+			$username =~ s/\@ffzg.hr$//; # strip domain, same as pGina
+			$username .= '@ffzg.hr';
 
-$buffer =~ s/(\n%%%SmartQ-For: )(\w+)(\n)/$1$username$3/s || die "can't replace user with $username";
+			$buffer =~ s/(\n%%%SmartQ-For: )(\w+)(\n)/$1$username$3/s || die "can't replace user with $username";
 
+			warn "%%%SmartQ-For: $win_username FROM $ip is $username";
 		}
                 $remote->syswrite($buffer);
             }
