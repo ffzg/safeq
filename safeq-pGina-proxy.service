@@ -1,0 +1,11 @@
+[Unit]
+Description=SafeQ rewrite user
+
+[Service]
+#Type=simple
+ExecStart=/srv/safeq/safeq-pGina-proxy.pl 10.60.3.9:9100 10.60.3.10:9100
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
